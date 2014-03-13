@@ -2,26 +2,10 @@
 /**
  * File containing the ezcWorkflowDatabaseDefinitionStorage class.
  *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
  * @package WorkflowDatabaseTiein
  * @version //autogen//
- * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @copyright Copyright (C) 2005-2009 eZ Systems AS. All rights reserved.
+ * @license http://ez.no/licenses/new_bsd New BSD License
  */
 
 /**
@@ -236,15 +220,15 @@ class ezcWorkflowDatabaseDefinitionStorage implements ezcWorkflowDefinitionStora
         // Connect node objects.
         $query = $this->db->createSelectQuery();
 
-        $query->select( $query->alias( 'node_connection.incoming_node_id',
+        $query->select( $query->alias( $this->options['prefix'] . 'node_connection.incoming_node_id',
                                        $this->db->quoteIdentifier( 'incoming_node_id' ) ) )
-              ->select( $query->alias( 'node_connection.outgoing_node_id',
+              ->select( $query->alias( $this->options['prefix'] . 'node_connection.outgoing_node_id',
                                        $this->db->quoteIdentifier( 'outgoing_node_id' ) ) )
               ->from( $query->innerJoin( $this->db->quoteIdentifier( $this->options['prefix'] . 'node_connection' ),
                                          $this->db->quoteIdentifier( $this->options['prefix'] . 'node' ),
-                                         'node_connection.incoming_node_id',
-                                         'node.node_id' ) )
-              ->where( $query->expr->eq( 'node.workflow_id',
+                                         $this->options['prefix'] . 'node_connection.incoming_node_id',
+                                         $this->options['prefix'] . 'node.node_id' ) )
+              ->where( $query->expr->eq( $this->options['prefix'] . 'node.workflow_id',
                                          $query->bindValue( (int)$workflowId ) ) )
               ->orderBy( $this->db->quoteIdentifier( 'node_connection_id' ) );
 
