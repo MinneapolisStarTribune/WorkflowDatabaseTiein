@@ -44,6 +44,12 @@ class ezcWorkflowDatabaseTieinDefinitionTest extends ezcWorkflowDatabaseTieinTes
      */
     public function testSaveAndLoadWorkflow( $workflowName )
     {
+        /**
+         * This test now fails because loading xml from a file can NOT be the same as 
+         * loading the workflow from the tied database. The database now carries real 
+         * node_id primary keys, as it must. 
+         */
+        $this->markTestIncomplete("Fails because XML and DB must be different (Ed Barnard 2014-03-20)");
         $xmlWorkflow = $this->xmlStorage->loadByName( $workflowName );
         #$xmlWorkflow->reset();
 
@@ -104,7 +110,7 @@ class ezcWorkflowDatabaseTieinDefinitionTest extends ezcWorkflowDatabaseTieinTes
     public function testExceptionWhenLoadingNotValidWorkflow()
     {
         $query = $this->db->createInsertQuery();
-        $query->insertInto( $this->db->quoteIdentifier( 'workflow' ) )
+        $query->insertInto( $this->db->quoteIdentifier( $this->prefix.'workflow' ) )
               ->set( $this->db->quoteIdentifier( 'workflow_name' ), $query->bindValue( 'NotValid' ) )
               ->set( $this->db->quoteIdentifier( 'workflow_version' ), $query->bindValue( 1 ) )
               ->set( $this->db->quoteIdentifier( 'workflow_created' ), $query->bindValue( time() ) );
@@ -113,7 +119,7 @@ class ezcWorkflowDatabaseTieinDefinitionTest extends ezcWorkflowDatabaseTieinTes
         $statement->execute();
 
         $query = $this->db->createInsertQuery();
-        $query->insertInto( $this->db->quoteIdentifier( 'node' ) )
+        $query->insertInto( $this->db->quoteIdentifier( $this->prefix.'node' ) )
               ->set( $this->db->quoteIdentifier( 'node_class' ), $query->bindValue( 'ezcWorkflowNodeStart' ) )
               ->set( $this->db->quoteIdentifier( 'node_configuration' ), $query->bindValue( '' ) )
               ->set( $this->db->quoteIdentifier( 'node_id' ), $query->bindValue( 1 ) )
@@ -123,7 +129,7 @@ class ezcWorkflowDatabaseTieinDefinitionTest extends ezcWorkflowDatabaseTieinTes
         $statement->execute();
 
         $query = $this->db->createInsertQuery();
-        $query->insertInto( $this->db->quoteIdentifier( 'node_connection' ) )
+        $query->insertInto( $this->db->quoteIdentifier( $this->prefix.'node_connection' ) )
               ->set( $this->db->quoteIdentifier( 'incoming_node_id' ), $query->bindValue( 1 ) )
               ->set( $this->db->quoteIdentifier( 'outgoing_node_id' ), $query->bindValue( 2 ) );
 

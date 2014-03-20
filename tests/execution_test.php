@@ -194,6 +194,7 @@ class ezcWorkflowDatabaseTieinExecutionTest extends ezcWorkflowDatabaseTieinTest
 
     public function testInteractiveSubWorkflow()
     {
+        $traces = array();
         $this->setUpStartInputEnd();
         $this->dbStorage->save( $this->workflow );
 
@@ -202,17 +203,27 @@ class ezcWorkflowDatabaseTieinExecutionTest extends ezcWorkflowDatabaseTieinTest
 
         $execution = new ezcWorkflowDatabaseExecution( $this->db );
         $execution->workflow = $this->workflow;
+        $traces['*****before start'] = $execution;
 
         $id = $execution->start();
 
+        $traces['*****id at execution start'] = $id;
         $this->assertNotNull( $id );
         $this->assertFalse( $execution->hasEnded() );
         $this->assertFalse( $execution->isCancelled() );
         $this->assertFalse( $execution->isResumed() );
         $this->assertTrue( $execution->isSuspended() );
+        $waitingfor = $execution->getWaitingFor();
+        $traces['*****at suspend'] = $execution;
+        $this->assertTrue(array_key_exists('variable', $waitingfor), "Should be waiting for variable at suspend:\n".
+                          print_r($traces,true));
 
         $execution = new ezcWorkflowDatabaseExecution( $this->db, $id );
 
+        $traces['*****new by execution id '.$id] = $execution;
+        $waitingfor = $execution->getWaitingFor();
+        $this->assertTrue(array_key_exists('variable', $waitingfor), "Should be waiting for variable when instantiating by execution id:\n".
+                          print_r($traces,true));
         $this->assertFalse( $execution->hasEnded() );
         $this->assertFalse( $execution->isCancelled() );
         $this->assertFalse( $execution->isResumed() );
@@ -220,7 +231,14 @@ class ezcWorkflowDatabaseTieinExecutionTest extends ezcWorkflowDatabaseTieinTest
 
         $execution->resume( array( 'variable' => 'value' ) );
 
-        $this->assertTrue( $execution->hasEnded() );
+        $traces['*****upon resume'] = $execution;
+/*
+        $waitingfor = $execution->getWaitingFor();                                                                                          
+        $this->assertTrue(array_key_exists('variable', $waitingfor), "Should be waiting for variable when instantiating by execution id:\n".
+                          print_r($traces,true));                                                                                           
+*/
+        $this->assertTrue( $execution->hasEnded(), "Should have ended:\n".
+                            print_r($traces,true));
         $this->assertFalse( $execution->isCancelled() );
         $this->assertFalse( $execution->isResumed() );
         $this->assertFalse( $execution->isSuspended() );

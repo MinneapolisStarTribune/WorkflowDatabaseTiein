@@ -172,9 +172,14 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
 
         $query = $this->db->createInsertQuery();
 
+        /**
+         * Ed Barnard, 2014-03-16 
+         * Change execution_parent=0 to execution_parent=NULL to satisfy nullable 
+         * foreign key constraint 
+         */
         $query->insertInto( $this->db->quoteIdentifier( $this->options['prefix'] . 'execution' ) )
               ->set( $this->db->quoteIdentifier( 'workflow_id' ), $query->bindValue( (int)$this->workflow->id ) )
-              ->set( $this->db->quoteIdentifier( 'execution_parent' ), $query->bindValue( (int)$parentId ) )
+              ->set( $this->db->quoteIdentifier( 'execution_parent' ), $query->bindValue( (int)$parentId ? (int)$parentId : NULL ) )
               ->set( $this->db->quoteIdentifier( 'execution_started' ), $query->bindValue( time() ) )
               ->set( $this->db->quoteIdentifier( 'execution_variables' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $this->variables ) ) )
               ->set( $this->db->quoteIdentifier( 'execution_waiting_for' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $this->waitingFor ) ) )
@@ -215,6 +220,7 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
 
             $query->insertInto( $this->db->quoteIdentifier( $this->options['prefix'] . 'execution_state' ) )
                   ->set( $this->db->quoteIdentifier( 'execution_id' ), $query->bindValue( (int)$this->id ) )
+                  //->set( $this->db->quoteIdentifier( 'node_id' ), $query->bindValue( (int)$node->database_node_id() ) )
                   ->set( $this->db->quoteIdentifier( 'node_id' ), $query->bindValue( (int)$node->getId() ) )
                   ->set( $this->db->quoteIdentifier( 'node_state' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $node->getState() ) ) )
                   ->set( $this->db->quoteIdentifier( 'node_activated_from' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $node->getActivatedFrom() ) ) )
@@ -244,8 +250,8 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function doEnd()
     {
-        $this->cleanupTable( 'execution' );
         $this->cleanupTable( 'execution_state' );
+        $this->cleanupTable( 'execution' );
 
         if ( !$this->isCancelled() )
         {

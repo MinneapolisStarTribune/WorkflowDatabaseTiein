@@ -188,7 +188,7 @@ class ezcWorkflowDatabaseDefinitionStorage implements ezcWorkflowDefinitionStora
             }
 
             $nodes[$node['node_id']] = new $node['node_class'](
-              $configuration
+              $configuration, $node['node_id']
             );
 
             if ($nodes[$node['node_id']] instanceof ezcWorkflowNodeFinally &&
@@ -386,7 +386,10 @@ class ezcWorkflowDatabaseDefinitionStorage implements ezcWorkflowDefinitionStora
             $statement = $query->prepare();
             $statement->execute();
 
-            $nodeMap[$this->db->lastInsertId( $this->db->quoteIdentifier( 'node_node_id_seq' ) )] = $node;
+            $database_node_id = $this->db->lastInsertId( $this->db->quoteIdentifier( 'node_node_id_seq' ) );
+            $node->database_node_id = $database_node_id;
+            $node->setId($database_node_id);
+            $nodeMap[$database_node_id] = $node;
         }
 
         // Connect node table rows.
