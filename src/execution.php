@@ -193,6 +193,13 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
     }
 
     /**
+     * We are about to throw an exception. Get back to an acceptable state.
+     */
+    protected function rollback() {
+        $this->db->rollback();
+    }
+
+    /**
      * Suspend workflow execution.
      *
      * @throws ezcDbException
