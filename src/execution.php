@@ -168,7 +168,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function doStart( $parentId )
     {
-        $this->db->beginTransaction();
 
         $query = $this->db->createInsertQuery();
 
@@ -197,6 +196,18 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function rollback() {
         $this->db->rollback();
+    }
+    /**
+     * Begin Transaction invoked in suspend/resume
+     */
+    protected function beginTransaction() {
+        $this->db->beginTransaction();
+    }
+    /**
+     * Commit Transaction invoked in suspend/resume
+     */
+    protected function commit() {
+        $this->db->commit();
     }
 
     /**
@@ -227,7 +238,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
 
             $query->insertInto( $this->db->quoteIdentifier( $this->options['prefix'] . 'execution_state' ) )
                   ->set( $this->db->quoteIdentifier( 'execution_id' ), $query->bindValue( (int)$this->id ) )
-                  //->set( $this->db->quoteIdentifier( 'node_id' ), $query->bindValue( (int)$node->database_node_id() ) )
                   ->set( $this->db->quoteIdentifier( 'node_id' ), $query->bindValue( (int)$node->getId() ) )
                   ->set( $this->db->quoteIdentifier( 'node_state' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $node->getState() ) ) )
                   ->set( $this->db->quoteIdentifier( 'node_activated_from' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $node->getActivatedFrom() ) ) )
@@ -237,7 +247,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
             $statement->execute();
         }
 
-        $this->db->commit();
     }
 
     /**
@@ -247,7 +256,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function doResume()
     {
-        $this->db->beginTransaction();
     }
 
     /**
@@ -262,7 +270,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
 
         if ( !$this->isCancelled() )
         {
-            $this->db->commit();
         }
     }
 
