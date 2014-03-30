@@ -210,9 +210,13 @@ class ezcWorkflowDatabaseTieinExecutionTest extends ezcWorkflowDatabaseTieinTest
         $this->assertFalse( $execution->isCancelled() );
         $this->assertFalse( $execution->isResumed() );
         $this->assertTrue( $execution->isSuspended() );
+        $waitingfor = $execution->getWaitingFor();
+        $this->assertTrue(array_key_exists('variable', $waitingfor), "Should be waiting for variable at suspend:");
 
         $execution = new ezcWorkflowDatabaseExecution( $this->db, $id );
 
+        $waitingfor = $execution->getWaitingFor();
+        $this->assertTrue(array_key_exists('variable', $waitingfor), "Should be waiting for variable when instantiating by execution id:");
         $this->assertFalse( $execution->hasEnded() );
         $this->assertFalse( $execution->isCancelled() );
         $this->assertFalse( $execution->isResumed() );
@@ -220,7 +224,7 @@ class ezcWorkflowDatabaseTieinExecutionTest extends ezcWorkflowDatabaseTieinTest
 
         $execution->resume( array( 'variable' => 'value' ) );
 
-        $this->assertTrue( $execution->hasEnded() );
+        $this->assertTrue( $execution->hasEnded(), "Should have ended:");
         $this->assertFalse( $execution->isCancelled() );
         $this->assertFalse( $execution->isResumed() );
         $this->assertFalse( $execution->isSuspended() );
