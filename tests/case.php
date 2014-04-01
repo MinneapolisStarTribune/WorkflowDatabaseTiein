@@ -39,6 +39,7 @@ abstract class ezcWorkflowDatabaseTieinTestCase extends ezcWorkflowTestCase
 {
     protected $db;
     protected $dbStorage;
+    protected $prefix;
 
     protected function setUp()
     {
@@ -61,6 +62,7 @@ abstract class ezcWorkflowDatabaseTieinTestCase extends ezcWorkflowTestCase
             $schema = ezcDbSchema::createFromFile(
               'array',
               dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'workflow.dba'
+              ,true /* Modify schema to include table prefix */
             );
 
             $schema->writeToDb( $this->db );

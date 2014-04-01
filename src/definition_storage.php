@@ -204,7 +204,7 @@ class ezcWorkflowDatabaseDefinitionStorage implements ezcWorkflowDefinitionStora
             }
 
             $nodes[$node['node_id']] = new $node['node_class'](
-              $configuration
+              $configuration, $node['node_id']
             );
 
             if ($nodes[$node['node_id']] instanceof ezcWorkflowNodeFinally &&
@@ -236,15 +236,15 @@ class ezcWorkflowDatabaseDefinitionStorage implements ezcWorkflowDefinitionStora
         // Connect node objects.
         $query = $this->db->createSelectQuery();
 
-        $query->select( $query->alias( 'node_connection.incoming_node_id',
+        $query->select( $query->alias( $this->options['prefix'] . 'node_connection.incoming_node_id',
                                        $this->db->quoteIdentifier( 'incoming_node_id' ) ) )
-              ->select( $query->alias( 'node_connection.outgoing_node_id',
+              ->select( $query->alias( $this->options['prefix'] . 'node_connection.outgoing_node_id',
                                        $this->db->quoteIdentifier( 'outgoing_node_id' ) ) )
               ->from( $query->innerJoin( $this->db->quoteIdentifier( $this->options['prefix'] . 'node_connection' ),
                                          $this->db->quoteIdentifier( $this->options['prefix'] . 'node' ),
-                                         'node_connection.incoming_node_id',
-                                         'node.node_id' ) )
-              ->where( $query->expr->eq( 'node.workflow_id',
+                                         $this->options['prefix'] . 'node_connection.incoming_node_id',
+                                         $this->options['prefix'] . 'node.node_id' ) )
+              ->where( $query->expr->eq( $this->options['prefix'] . 'node.workflow_id',
                                          $query->bindValue( (int)$workflowId ) ) )
               ->orderBy( $this->db->quoteIdentifier( 'node_connection_id' ) );
 
@@ -402,11 +402,20 @@ class ezcWorkflowDatabaseDefinitionStorage implements ezcWorkflowDefinitionStora
             $statement = $query->prepare();
             $statement->execute();
 
-            $nodeMap[$this->db->lastInsertId( $this->db->quoteIdentifier( 'node_node_id_seq' ) )] = $node;
+            $database_node_id = $this->db->lastInsertId( $this->db->quoteIdentifier( 'node_node_id_seq' ) );
+            $node->database_node_id = $database_node_id;
+            $node->setId($database_node_id);
+            $nodeMap[$database_node_id] = $node;
         }
 
+        /**
+         * Loop on $nodeMap rather than on $workflow->nodes because we adjusted the ids 
+         * while saving the nodes. $workflow->nodes is the result of a visitor-pattern 
+         * collection of the nodes, and gets confused. 
+         */
+
         // Connect node table rows.
-        foreach ( $workflow->nodes as $node )
+        foreach ( $nodeMap as $node )
         {
             foreach ( $node->getOutNodes() as $outNode )
             {

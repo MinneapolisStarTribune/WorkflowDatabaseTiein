@@ -168,13 +168,15 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function doStart( $parentId )
     {
-        $this->db->beginTransaction();
-
         $query = $this->db->createInsertQuery();
 
+        /**
+         * Change execution_parent=0 to execution_parent=NULL to satisfy nullable 
+         * foreign key constraint 
+         */
         $query->insertInto( $this->db->quoteIdentifier( $this->options['prefix'] . 'execution' ) )
               ->set( $this->db->quoteIdentifier( 'workflow_id' ), $query->bindValue( (int)$this->workflow->id ) )
-              ->set( $this->db->quoteIdentifier( 'execution_parent' ), $query->bindValue( (int)$parentId ) )
+              ->set( $this->db->quoteIdentifier( 'execution_parent' ), $query->bindValue( (int)$parentId? (int)$parentId : NULL ) )
               ->set( $this->db->quoteIdentifier( 'execution_started' ), $query->bindValue( time() ) )
               ->set( $this->db->quoteIdentifier( 'execution_variables' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $this->variables ) ) )
               ->set( $this->db->quoteIdentifier( 'execution_waiting_for' ), $query->bindValue( ezcWorkflowDatabaseUtil::serialize( $this->waitingFor ) ) )
@@ -185,6 +187,27 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
         $statement->execute();
 
         $this->id = (int)$this->db->lastInsertId( 'execution_execution_id_seq' );
+    }
+
+    /**
+     * Roll back the database transaction, getting us back to an acceptable state
+     */
+    protected function rollback() {
+        $this->db->rollback();
+    }
+
+    /**
+     * Begin Transaction invoked in suspend/resume
+     */
+    protected function beginTransaction() {
+        $this->db->beginTransaction();
+    }
+
+    /**
+     * Commit Transaction invoked in suspend/resume
+     */
+    protected function commit() {
+        $this->db->commit();
     }
 
     /**
@@ -223,8 +246,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
             $statement = $query->prepare();
             $statement->execute();
         }
-
-        $this->db->commit();
     }
 
     /**
@@ -234,7 +255,6 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function doResume()
     {
-        $this->db->beginTransaction();
     }
 
     /**
@@ -244,12 +264,11 @@ class ezcWorkflowDatabaseExecution extends ezcWorkflowExecution
      */
     protected function doEnd()
     {
-        $this->cleanupTable( 'execution' );
         $this->cleanupTable( 'execution_state' );
+        $this->cleanupTable( 'execution' );
 
         if ( !$this->isCancelled() )
         {
-            $this->db->commit();
         }
     }
 
