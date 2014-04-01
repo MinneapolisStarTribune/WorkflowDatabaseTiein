@@ -24,7 +24,12 @@
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-require_once 'Workflow/tests/case.php';
+$dir = realpath(__DIR__."/../../Workflow/tests");
+if(!is_dir($dir)) {
+$dir = realpath(__DIR__."/../../workflow/tests");
+}
+$case = "$dir/case.php";
+require_once $case;
 
 /**
  * @package WorkflowDatabaseTiein
@@ -41,7 +46,15 @@ abstract class ezcWorkflowDatabaseTieinTestCase extends ezcWorkflowTestCase
 
         try
         {
-            $this->db = ezcDbFactory::create( ZETA_TESTSUITE_DSN );
+            /**
+             * Ed Barnard, 2014-03-14 
+             * Provide database connection 
+             * Adjust canned database schema to include prefix 
+             */
+            $options = new ezcWorkflowDatabaseOptions;
+            $this->prefix = $options->prefix;
+            $dsn = defined('ZETA_TESTSUITE_DSN') ? ZETA_TESTSUITE_DSN : 'sqlite://:memory:';
+            $this->db = ezcDbFactory::create( $dsn );
 
             $this->cleanupTables( $this->db );
 
