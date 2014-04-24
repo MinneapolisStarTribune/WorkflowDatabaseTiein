@@ -24,10 +24,7 @@
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-$dir = realpath(__DIR__."/../../Workflow/tests");
-if(!is_dir($dir)) {
-$dir = realpath(__DIR__."/../../workflow/tests");
-}
+$dir = dirname(__DIR__)."/vendor/zetacomponents/workflow/tests";
 $case = "$dir/case.php";
 require_once $case;
 
@@ -48,7 +45,6 @@ abstract class ezcWorkflowDatabaseTieinTestCase extends ezcWorkflowTestCase
         try
         {
             /**
-             * Ed Barnard, 2014-03-14 
              * Provide database connection 
              * Adjust canned database schema to include prefix 
              */
