@@ -31,9 +31,10 @@
  */
 $target = "workflow/tests";
 $parent = dirname(__DIR__);
+$grandparent = dirname($parent);
 $dir = "$parent/vendor/zetacomponents/$target";
 if(!is_dir($dir)) {
-    $dir = "$parent/$target";
+    $dir = "$grandparent/$target";
 }
 $case = "$dir/case.php";
 require_once $case;
