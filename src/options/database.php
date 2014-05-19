@@ -42,7 +42,7 @@ class ezcWorkflowDatabaseOptions extends ezcBaseOptions
      * @var array(string=>mixed)
      */
     protected $properties = array(
-        'prefix' => '',
+        'prefix' => 'wkfl_',
     );
 
     /**

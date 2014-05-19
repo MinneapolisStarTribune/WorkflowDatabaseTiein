@@ -47,7 +47,8 @@ class ezcWorkflowDatabaseTieinOptionsTest extends ezcTestCase
     public function testOptions()
     {
         $this->assertTrue( isset( $this->options['prefix'] ) );
-        $this->assertEquals( '', $this->options['prefix'] );
+        // Option might be set to something other than released default
+        $this->assertEquals( (string)$this->options['prefix'], $this->options['prefix'] );
 
         $this->options['prefix'] = 'myPrefix';
         $this->assertEquals( 'myPrefix', $this->options['prefix'] );

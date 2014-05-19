@@ -24,7 +24,20 @@
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-require_once 'Workflow/tests/case.php';
+/**
+ * Search for the dependent package's test loader. If we are in the vendor 
+ * directory, it is in a sister directory. If we are the main package, it is in 
+ * the subordinate vendor/ directory. 
+ */
+$target = "workflow/tests";
+$parent = dirname(__DIR__);
+$grandparent = dirname($parent);
+$dir = "$parent/vendor/zetacomponents/$target";
+if(!is_dir($dir)) {
+    $dir = "$grandparent/$target";
+}
+$case = "$dir/case.php";
+require_once $case;
 
 /**
  * @package WorkflowDatabaseTiein
@@ -34,6 +47,7 @@ abstract class ezcWorkflowDatabaseTieinTestCase extends ezcWorkflowTestCase
 {
     protected $db;
     protected $dbStorage;
+    protected $prefix;
 
     protected function setUp()
     {
@@ -41,13 +55,21 @@ abstract class ezcWorkflowDatabaseTieinTestCase extends ezcWorkflowTestCase
 
         try
         {
-            $this->db = ezcDbFactory::create( ZETA_TESTSUITE_DSN );
+            /**
+             * Provide database connection 
+             * Adjust canned database schema to include prefix 
+             */
+            $options = new ezcWorkflowDatabaseOptions;
+            $this->prefix = $options->prefix;
+            $dsn = defined('ZETA_TESTSUITE_DSN') ? ZETA_TESTSUITE_DSN : 'sqlite://:memory:';
+            $this->db = ezcDbFactory::create( $dsn );
 
             $this->cleanupTables( $this->db );
 
             $schema = ezcDbSchema::createFromFile(
               'array',
               dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'workflow.dba'
+              ,true /* Modify schema to include table prefix */
             );
 
             $schema->writeToDb( $this->db );
